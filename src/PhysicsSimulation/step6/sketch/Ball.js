@@ -1,0 +1,115 @@
+class Ball {
+  pos;
+  vel;
+  diameter;
+  colour;
+  // isMouseInside;
+  isGrabbed;
+  grabOffset;
+  constructor(diameter, speed, colour) {
+    this.pos = createVector(width / 2, height / 2);
+    this.vel = p5.Vector.random2D().setMag(speed);
+    this.diameter = diameter;
+    this.colour = colour;
+    // this.isMouseInside = false;
+    this.isGrabbed = false;
+    this.grabOffset = createVector(0, 0);
+  }
+
+  init(x, y, speed) {
+    this.pos.set(x, y);
+    const randomAngle = Math.random() * 360;
+    this.vel.setHeading(radians(randomAngle));
+    this.vel.setMag(speed);
+  }
+
+  drag(x, y) {
+    this.pos.set(x, y);
+    this.pos.add(this.grabOffset);
+  }
+
+  applyGravity() {
+    if (this.isGrabbed) return;
+    this.vel.y += gravity;
+  }
+
+  update() {
+    if (this.isGrabbed) return;
+    this.pos.add(this.vel);
+  }
+
+  resolveWallCollision() {
+    if (this.isGrabbed) return;
+    if (
+      this.pos.x < this.diameter / 2 ||
+      this.pos.x > width - this.diameter / 2
+    ) {
+      this.pos.x =
+        this.pos.x < this.diameter / 2
+          ? this.diameter / 2
+          : width - this.diameter / 2;
+      this.vel.x *= -restitution;
+    }
+    if (
+      this.pos.y < this.diameter / 2 ||
+      this.pos.y > height - this.diameter / 2
+    ) {
+      this.pos.y =
+        this.pos.y < this.diameter / 2
+          ? this.diameter / 2
+          : height - this.diameter / 2;
+      this.vel.y *= -restitution;
+    }
+  }
+
+  // setMouseInside(x, y) {
+  //   const dx = x - this.pos.x;
+  //   const dy = y - this.pos.y;
+  //   // const distance = Math.sqrt(dx * dx + dy * dy);
+  //   const distance = (dx ** 2 + dy ** 2) ** (1 / 2);
+  //   this.isMouseInside = distance <= this.diameter / 2;
+  // }
+
+  isMouseInside(x, y) {
+    const dx = x - this.pos.x;
+    const dy = y - this.pos.y;
+    const distance = (dx ** 2 + dy ** 2) ** (1 / 2);
+    return distance <= this.diameter / 2;
+  }
+
+  grab(x, y) {
+    this.grabOffset.set(this.pos);
+    this.grabOffset.sub(x, y);
+    this.vel.set(0, 0);
+    this.isGrabbed = true;
+  }
+
+  ungrab() {
+    this.isGrabbed = false;
+  }
+
+  show(isHovered) {
+    if (isHovered) {
+      noFill();
+      stroke(this.colour);
+    } else {
+      noStroke();
+      fill(this.colour);
+    }
+    circle(this.pos.x, this.pos.y, this.diameter);
+  }
+
+  showDebug() {
+    stroke("white");
+    line(
+      this.pos.x,
+      this.pos.y,
+      this.pos.x + this.vel.x * 10,
+      this.pos.y + this.vel.y * 10
+    );
+    stroke("red");
+    line(this.pos.x, this.pos.y, this.pos.x + this.vel.x * 10, this.pos.y);
+    stroke("green");
+    line(this.pos.x, this.pos.y, this.pos.x, this.pos.y + this.vel.y * 10);
+  }
+}
